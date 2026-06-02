@@ -1,0 +1,608 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AnimesTomes — Ton univers anime</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏯</text></svg>">
+</head>
+<body>
+
+<!-- ══════════════════════════════════════
+     ÉCRAN AUTH
+═══════════════════════════════════════ -->
+<div id="authScreen">
+  <div class="auth-particles" id="authParticles"></div>
+  <div class="auth-logo">Animes<span>Tomes</span></div>
+  <div class="auth-sub">Ton univers anime — connecte-toi pour continuer</div>
+  <div class="auth-box">
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tabLogin"    onclick="switchTab('login')">Connexion</button>
+      <button class="auth-tab"        id="tabRegister" onclick="switchTab('register')">Inscription</button>
+    </div>
+    <div id="authErr" class="auth-err"></div>
+    <div id="loginForm">
+      <div class="field"><label>Nom d'utilisateur</label>
+        <input id="lUser" type="text" placeholder="ton_pseudo" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <div class="field"><label>Mot de passe</label>
+        <input id="lPass" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <button class="auth-btn" onclick="doLogin()">Se connecter</button>
+    </div>
+    <div id="registerForm" style="display:none">
+      <div class="field"><label>Nom d'utilisateur</label>
+        <input id="rUser" type="text" placeholder="ton_pseudo"></div>
+      <div class="field"><label>Mot de passe (min. 4 caractères)</label>
+        <input id="rPass" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doRegister()"></div>
+      <div class="field"><label>Choisis ton avatar</label>
+        <div class="avatar-pick" id="avatarPick"></div></div>
+      <button class="auth-btn" onclick="doRegister()">Créer mon compte</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     APP SHELL
+═══════════════════════════════════════ -->
+<div id="appShell">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="h-logo" onclick="navTo('pgHome')">Animes<span>Tomes</span></div>
+    <div class="h-right">
+      <button class="h-notif" onclick="openNotifPanel()" title="Notifications">
+        🔔<span class="notif-badge" id="notifBadge">0</span>
+      </button>
+      <div class="h-avatar" id="hAvatar" onclick="openProfile(currentUser)" title="Mon profil"></div>
+      <button class="h-logout" onclick="doLogout()">Déconnexion</button>
+      <button class="burger" onclick="toggleDrawer()"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+
+  <!-- NOTIFICATIONS PANEL -->
+  <div class="notif-panel" id="notifPanel">
+    <div class="np-head">Notifications<button class="np-clear" onclick="clearNotifs()">Tout effacer</button></div>
+    <div id="notifList"></div>
+  </div>
+
+  <!-- DRAWER -->
+  <div class="drawer-overlay" id="drawerOv" onclick="closeDrawer()"></div>
+  <div class="drawer" id="drawer">
+    <div class="drawer-head"><h3>Menu</h3><button class="drawer-close" onclick="closeDrawer()">✕</button></div>
+    <div class="drawer-profile">
+      <div class="dp-avatar" id="drawerAvatar"></div>
+      <div><div class="dp-name" id="drawerName">—</div><div class="dp-rank" id="drawerRank"></div></div>
+    </div>
+    <div class="drawer-menu">
+      <button class="drawer-item active" id="dm0" onclick="navTo('pgHome');closeDrawer()"><span class="di-icon">🏠</span>Accueil</button>
+      <button class="drawer-item" id="dm1" onclick="navTo('pgMsg');closeDrawer()"><span class="di-icon">📨</span>Messagerie</button>
+      <button class="drawer-item" id="dm2" onclick="navTo('pgFriends');closeDrawer()"><span class="di-icon">👥</span>Amis<span class="drawer-notif-dot" id="drawerInvDot">!</span></button>
+      <button class="drawer-item" id="dm3" onclick="navTo('pgGalerie');closeDrawer()"><span class="di-icon">🖼️</span>Galerie</button>
+      <button class="drawer-item" id="dm4" onclick="navTo('pgJeux');closeDrawer()"><span class="di-icon">🎮</span>Jeux</button>
+      <button class="drawer-item" id="dm5" onclick="navTo('pgQuiz');closeDrawer()"><span class="di-icon">🧠</span>Quiz</button>
+      <div class="drawer-sep"></div>
+      <button class="drawer-item" onclick="navTo('pgMonCompte');closeDrawer()"><span class="di-icon">⚙️</span>Mon compte</button>
+      <button class="drawer-item" onclick="openProfile(currentUser);closeDrawer()"><span class="di-icon">👤</span>Mon profil</button>
+      <button class="drawer-item" onclick="navTo('pgHelp');closeDrawer()"><span class="di-icon">❓</span>Aide</button>
+      <button class="drawer-item" onclick="navTo('pgApropos');closeDrawer()"><span class="di-icon">ℹ️</span>À propos</button>
+      <div class="drawer-sep"></div>
+      <button class="drawer-item" onclick="doLogout();closeDrawer()"><span class="di-icon">🚪</span>Déconnexion</button>
+    </div>
+  </div>
+
+  <!-- CONTENU PRINCIPAL -->
+  <div id="mainContent">
+
+    <!-- PAGE ACCUEIL -->
+    <div id="pgHome" class="page active">
+      <div style="position:relative;width:100%;height:360px;overflow:hidden;flex-shrink:0">
+        <div id="sliderWrap" style="position:absolute;inset:0"></div>
+        <div style="position:absolute;top:50%;transform:translateY(-50%);width:100%;display:flex;justify-content:space-between;padding:0 12px;z-index:3;pointer-events:none">
+          <button class="slider-arrow" onclick="goSlide((slideIdx-1+SLIDES.length)%SLIDES.length)" style="pointer-events:all">&#8249;</button>
+          <button class="slider-arrow" onclick="goSlide((slideIdx+1)%SLIDES.length)" style="pointer-events:all">&#8250;</button>
+        </div>
+        <div class="slide-dots" id="sliderDots"></div>
+      </div>
+      <div class="sec-title">📸 Stories</div>
+      <div class="stories-row" id="storiesRow"></div>
+      <div class="quick-nav">
+        <button class="qn-btn active" onclick="navTo('pgHome')"><span>🏠</span> Accueil</button>
+        <button class="qn-btn" onclick="navTo('pgMsg')"><span>📨</span> Messagerie</button>
+        <button class="qn-btn" onclick="navTo('pgFriends')"><span>👥</span> Amis<span class="qn-dot" id="qnInvDot"></span></button>
+        <button class="qn-btn" onclick="navTo('pgGalerie')"><span>🖼️</span> Galerie</button>
+        <button class="qn-btn" onclick="navTo('pgJeux')"><span>🎮</span> Jeux</button>
+        <button class="qn-btn" onclick="navTo('pgQuiz')"><span>🧠</span> Quiz</button>
+      </div>
+      <div class="feed">
+        <div class="post-composer">
+          <div class="pc-avatar" id="composerAvatar"></div>
+          <input class="pc-input" id="composerInput" placeholder="Quoi de neuf, otaku ?" onclick="openModal('addPostModal')" readonly>
+          <button class="pc-btn" onclick="openModal('addPostModal')">Publier</button>
+        </div>
+        <div id="feedPosts"></div>
+      </div>
+    </div>
+
+    <!-- PAGE AMIS -->
+    <div id="pgFriends" class="page">
+      <div class="page-hdr">
+        <button class="back-btn" onclick="navTo('pgHome')">&#8592;</button>
+        <div class="page-hdr-title">👥 <span>Amis</span></div>
+      </div>
+      <div class="page-body">
+        <div style="max-width:520px">
+          <div class="search-row">
+            <input class="s-input" id="friendSearch" placeholder="Recherche un pseudo exact..." onkeydown="if(event.key==='Enter')searchUser()">
+            <button class="s-btn" onclick="searchUser()">Inviter</button>
+          </div>
+          <div id="searchResult"></div>
+          <div class="section-label" id="invLabel"></div>
+          <div id="invitationsReceived"></div>
+          <div class="section-label">Mes amis</div>
+          <div id="friendsList"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE MESSAGERIE -->
+    <div id="pgMsg" class="page">
+      <div class="page-hdr">
+        <button class="back-btn" onclick="navTo('pgHome')">&#8592;</button>
+        <div class="page-hdr-title">📨 <span>Messagerie</span></div>
+      </div>
+      <div id="msgHub" class="msg-hub">
+        <div class="hub-card priv">
+          <div class="hub-big">💬</div><h2>Messages Privés</h2>
+          <p>Chate en privé avec tes amis. Réservé aux amis acceptés.</p>
+          <button class="hub-enter" onclick="openPriv()">Ouvrir →</button>
+        </div>
+        <div class="hub-card club">
+          <div class="hub-big">🏯</div><h2>Club Otaku</h2>
+          <p>Le grand salon public de la communauté. Accès validé par l'admin.</p>
+          <button class="hub-enter" onclick="openClub()">Rejoindre →</button>
+        </div>
+      </div>
+      <!-- Chat Privé -->
+      <div id="privChat" style="display:none" class="chat-wrap">
+        <div class="chat-top">
+          <div class="ct-icon priv" id="privCtIcon">💬</div>
+          <div class="ct-info"><h3 id="privTitle">Sélectionne un ami</h3><p id="privSub">—</p></div>
+          <button class="back-btn" onclick="document.getElementById('privChat').style.display='none';document.getElementById('msgHub').style.display='grid'">&#8592;</button>
+        </div>
+        <div class="chat-body">
+          <div class="chat-sidebar" id="privSidebar"></div>
+          <div style="flex:1;display:flex;flex-direction:column;overflow:hidden">
+            <div class="msgs-area" id="privMsgs"><div class="empty-state">Sélectionne un ami</div></div>
+            <div class="emoji-row">
+              <button class="em-btn" onclick="addEmoji('privInput','🔥')">🔥</button>
+              <button class="em-btn" onclick="addEmoji('privInput','😂')">😂</button>
+              <button class="em-btn" onclick="addEmoji('privInput','👊')">👊</button>
+              <button class="em-btn" onclick="addEmoji('privInput','⚡')">⚡</button>
+              <button class="em-btn" onclick="addEmoji('privInput','🌸')">🌸</button>
+              <button class="em-btn" onclick="addEmoji('privInput','🐉')">🐉</button>
+              <button class="em-btn" onclick="addEmoji('privInput','❤️')">❤️</button>
+              <button class="em-btn" onclick="addEmoji('privInput','😭')">😭</button>
+              <button class="em-btn" onclick="addEmoji('privInput','💀')">💀</button>
+              <button class="em-btn" onclick="addEmoji('privInput','🏆')">🏆</button>
+            </div>
+            <div class="chat-input-row">
+              <label class="attach-btn" title="Image/Vidéo/Audio">📎<input type="file" accept="image/*,video/*,audio/*" style="display:none" onchange="sendPrivMedia(this)"></label>
+              <input class="c-input" id="privInput" placeholder="Message privé..." onkeydown="if(event.key==='Enter')sendPriv()">
+              <button class="send-btn priv" onclick="sendPriv()">&#10148;</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Club Otaku -->
+      <div id="clubChat" style="display:none" class="chat-wrap">
+        <div class="chat-top">
+          <div class="ct-icon club">🏯</div>
+          <div class="ct-info"><h3 id="clubChanName">#général</h3><p id="clubMemberCount">Club Otaku</p></div>
+          <button class="back-btn" onclick="document.getElementById('clubChat').style.display='none';document.getElementById('msgHub').style.display='grid'">&#8592;</button>
+        </div>
+        <div id="adminBar" style="display:none" class="admin-bar">
+          <span class="admin-badge-label">⚙️ Admin</span>
+          <button class="adm-btn" onclick="toggleLock()">🔒 <span id="lockLabel">Fermer le salon</span></button>
+          <button class="adm-btn" onclick="openPendingModal()">✅ Demandes <span id="pendingCount"></span></button>
+          <button class="adm-btn" onclick="openModal('newChannelModal')">➕ Salon</button>
+        </div>
+        <div id="lockedBanner" style="display:none" class="locked-banner">🔒 Ce salon est temporairement fermé par l'admin.</div>
+        <div class="chat-body">
+          <div class="chat-sidebar" id="clubSidebar"></div>
+          <div style="flex:1;display:flex;flex-direction:column;overflow:hidden">
+            <div class="msgs-area" id="clubMsgs"></div>
+            <div class="emoji-row">
+              <button class="em-btn" onclick="addEmoji('clubInput','🔥')">🔥</button>
+              <button class="em-btn" onclick="addEmoji('clubInput','😂')">😂</button>
+              <button class="em-btn" onclick="addEmoji('clubInput','👊')">👊</button>
+              <button class="em-btn" onclick="addEmoji('clubInput','⚡')">⚡</button>
+              <button class="em-btn" onclick="addEmoji('clubInput','🐉')">🐉</button>
+              <button class="em-btn" onclick="addEmoji('clubInput','🌸')">🌸</button>
+              <button class="em-btn" onclick="addEmoji('clubInput','🏆')">🏆</button>
+              <button class="em-btn" onclick="addEmoji('clubInput','💀')">💀</button>
+              <button class="em-btn" onclick="addEmoji('clubInput','😭')">😭</button>
+              <button class="em-btn" onclick="addEmoji('clubInput','❤️')">❤️</button>
+            </div>
+            <div class="chat-input-row">
+              <label class="attach-btn" title="Image/Vidéo/Audio">📎<input type="file" accept="image/*,video/*,audio/*" style="display:none" onchange="sendClubMedia(this)"></label>
+              <input class="c-input" id="clubInput" placeholder="Message dans #général..." onkeydown="if(event.key==='Enter')sendClub()">
+              <button class="send-btn club" onclick="sendClub()">&#10148;</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE GALERIE -->
+    <div id="pgGalerie" class="page">
+      <div class="page-hdr">
+        <button class="back-btn" onclick="navTo('pgHome')">&#8592;</button>
+        <div class="page-hdr-title">🖼️ <span>Galerie</span></div>
+      </div>
+      <div class="page-body">
+        <div class="gallery-controls">
+          <button class="f-btn active" onclick="filtG('all',this)">Tous</button>
+          <button class="f-btn" onclick="filtG('naruto',this)">Naruto</button>
+          <button class="f-btn" onclick="filtG('dragon ball',this)">Dragon Ball</button>
+          <button class="f-btn" onclick="filtG('one piece',this)">One Piece</button>
+          <button class="f-btn" onclick="filtG('demon slayer',this)">Demon Slayer</button>
+          <button class="f-btn" onclick="filtG('aot',this)">AOT</button>
+          <button class="f-btn" onclick="filtG('mha',this)">MHA</button>
+          <input class="gal-search" id="galSearchInput" placeholder="🔍 Rechercher..." oninput="filterGalSearch(this.value)">
+        </div>
+        <div class="gal-grid" id="galGrid"></div>
+      </div>
+    </div>
+
+    <!-- PAGE JEUX -->
+    <div id="pgJeux" class="page">
+      <div class="page-hdr">
+        <button class="back-btn" onclick="navTo('pgHome')">&#8592;</button>
+        <div class="page-hdr-title">🎮 <span>Jeux</span></div>
+      </div>
+      <div class="page-body">
+        <div class="games-grid" id="gamesGrid"></div>
+        <div id="gameArea" style="display:none"></div>
+      </div>
+    </div>
+
+    <!-- PAGE QUIZ -->
+    <div id="pgQuiz" class="page">
+      <div class="page-hdr">
+        <button class="back-btn" onclick="navTo('pgHome')">&#8592;</button>
+        <div class="page-hdr-title">🧠 <span>Quiz Anime</span></div>
+      </div>
+      <div class="page-body"><div class="qz-wrap" id="quizWrap"></div></div>
+    </div>
+
+    <!-- PAGE PROFIL -->
+    <div id="pgProfile" class="page">
+      <div class="page-hdr">
+        <button class="back-btn" onclick="history.back?navTo('pgHome'):navTo('pgHome')">&#8592;</button>
+        <div class="page-hdr-title"><span>Profil</span></div>
+      </div>
+      <div class="page-body" id="profileBody"></div>
+    </div>
+
+    <!-- PAGE MON COMPTE -->
+    <div id="pgMonCompte" class="page">
+      <div class="page-hdr">
+        <button class="back-btn" onclick="navTo('pgHome')">&#8592;</button>
+        <div class="page-hdr-title">⚙️ <span>Mon Compte</span></div>
+      </div>
+      <div class="page-body" id="mcBody"></div>
+    </div>
+
+    <!-- PAGE STATS ADMIN -->
+    <div id="pgStats" class="page">
+      <div class="page-hdr">
+        <button class="back-btn" onclick="navTo('pgMonCompte')">&#8592;</button>
+        <div class="page-hdr-title">📊 <span>Tableau de bord Admin</span></div>
+      </div>
+      <div class="page-body" id="statsBody"></div>
+    </div>
+
+    <!-- PAGE À PROPOS -->
+    <div id="pgApropos" class="page">
+      <div class="page-hdr">
+        <button class="back-btn" onclick="navTo('pgHome')">&#8592;</button>
+        <div class="page-hdr-title">ℹ️ <span>À propos</span></div>
+      </div>
+      <div class="page-body" id="aboutBody"></div>
+    </div>
+
+    <!-- PAGE AIDE -->
+    <div id="pgHelp" class="page">
+      <div class="page-hdr">
+        <button class="back-btn" onclick="navTo('pgHome')">&#8592;</button>
+        <div class="page-hdr-title">❓ <span>Aide</span></div>
+      </div>
+      <div class="page-body" id="helpBody"></div>
+    </div>
+
+  </div><!-- fin mainContent -->
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-left">© 2025 <span>AnimesTomes</span> — Tous droits réservés</div>
+    <div class="footer-social">
+      <!-- ↓ REMPLACE # PAR TES VRAIS LIENS ↓ -->
+      <a class="social-link" href="https://www.facebook.com/profile.php?id=61589328339307" target="_blank" title="Facebook">📘</a>
+      <a class="social-link" href="https://tiktok.com/@#" target="_blank" title="TikTok">🎵</a>
+      <a class="social-link" href="https://instagram.com/#" target="_blank" title="Instagram">📷</a>
+      <a class="social-link" href="https://wa.me/#" target="_blank" title="WhatsApp">💬</a>
+    </div>
+    <div class="footer-right"><span>RACTAC</span>-Creator</div>
+  </footer>
+
+</div><!-- fin appShell -->
+
+<!-- ══════════════════════════════════════
+     MODALS
+═══════════════════════════════════════ -->
+
+<!-- Ajouter post -->
+<div class="modal-overlay" id="addPostModal">
+  <div class="modal">
+    <div class="modal-head"><h3>✏️ Nouvelle publication</h3><button class="modal-close" onclick="closeModal('addPostModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label>Message</label><textarea id="postText" rows="4" placeholder="Quoi de neuf, otaku ?"></textarea></div>
+      <div class="field"><label>Image / Vidéo (optionnel)</label>
+        <input type="file" id="postImgInput" accept="image/*,video/*" style="color:var(--text);background:var(--bg3);border:1px solid var(--border);padding:6px;border-radius:8px;width:100%">
+      </div>
+      <div class="post-options-row">
+        <label><input type="checkbox" id="postPublic" checked> 🌍 Public (visible dans l'accueil)</label>
+        <label><input type="checkbox" id="postDownloadable" checked> ⬇ Téléchargeable</label>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="m-btn" onclick="closeModal('addPostModal')">Annuler</button>
+      <button class="m-btn primary" onclick="doAddPost()">Publier</button>
+    </div>
+  </div>
+</div>
+
+<!-- Ajouter story -->
+<div class="modal-overlay" id="addStoryModal">
+  <div class="modal">
+    <div class="modal-head"><h3>📸 Nouvelle story</h3><button class="modal-close" onclick="closeModal('addStoryModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label>Texte (optionnel)</label><textarea id="storyText" rows="2" placeholder="Partage un moment..."></textarea></div>
+      <div class="field"><label>Image ou Vidéo (optionnel)</label>
+        <input type="file" id="storyMediaInput" accept="image/*,video/*" multiple style="color:var(--text);background:var(--bg3);border:1px solid var(--border);padding:6px;border-radius:8px;width:100%">
+      </div>
+      <div id="storyMediaPreview" style="margin-top:8px"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="m-btn" onclick="closeModal('addStoryModal')">Annuler</button>
+      <button class="m-btn primary" onclick="doAddStory()">Publier</button>
+    </div>
+  </div>
+</div>
+
+<!-- Voir story -->
+<div class="modal-overlay" id="storyModal">
+  <div class="modal">
+    <div class="modal-head"><h3>📸 Story</h3><button class="modal-close" onclick="closeModal('storyModal')">✕</button></div>
+    <div class="modal-body" id="storyViewer"></div>
+  </div>
+</div>
+
+<!-- Aperçu image galerie -->
+<div class="modal-overlay" id="imgPreviewModal">
+  <div class="modal" style="max-width:540px">
+    <div class="modal-head"><h3 id="previewImgTitle">Aperçu</h3><button class="modal-close" onclick="closeModal('imgPreviewModal')">✕</button></div>
+    <div class="modal-body" style="padding:0">
+      <img id="previewImgEl" src="" alt="" style="width:100%;display:block">
+      <div style="padding:16px">
+        <div id="previewImgDesc" style="font-size:13px;color:var(--muted);margin-bottom:12px"></div>
+        <button class="auth-btn" id="previewDlBtn">⬇ Télécharger</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Signaler -->
+<div class="modal-overlay" id="reportModal">
+  <div class="modal">
+    <div class="modal-head"><h3>⚑ Signaler <span id="reportTargetName"></span></h3><button class="modal-close" onclick="closeModal('reportModal')">✕</button></div>
+    <input type="hidden" id="reportTarget">
+    <div class="modal-body">
+      <div class="field"><label>Motif</label>
+        <select id="reportReason">
+          <option>Harcèlement</option><option>Arnaque</option>
+          <option>Contenu inapproprié</option><option>Spam</option><option>Autre</option>
+        </select>
+      </div>
+      <div class="field"><label>Détails</label><textarea id="reportDetails" rows="3" placeholder="Décris le problème..."></textarea></div>
+    </div>
+    <div class="modal-foot">
+      <button class="m-btn" onclick="closeModal('reportModal')">Annuler</button>
+      <button class="m-btn primary" onclick="doReport()">Envoyer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Prévenir Admin -->
+<div class="modal-overlay" id="warnModal">
+  <div class="modal">
+    <div class="modal-head"><h3>⚠️ Prévenir <span id="warnTargetName"></span></h3><button class="modal-close" onclick="closeModal('warnModal')">✕</button></div>
+    <input type="hidden" id="warnTarget">
+    <div class="modal-body">
+      <div class="field"><label>Message de prévention</label><textarea id="warnMsg" rows="3" placeholder="Écris ta prévention..."></textarea></div>
+    </div>
+    <div class="modal-foot">
+      <button class="m-btn" onclick="closeModal('warnModal')">Annuler</button>
+      <button class="m-btn primary" onclick="doWarn()">Envoyer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Donner étoiles Admin -->
+<div class="modal-overlay" id="giveStarsModal">
+  <div class="modal">
+    <div class="modal-head"><h3>⭐ Donner des étoiles à <span id="starsTargetName"></span></h3><button class="modal-close" onclick="closeModal('giveStarsModal')">✕</button></div>
+    <input type="hidden" id="starsTarget">
+    <div class="modal-body">
+      <div class="field"><label>Nombre d'étoiles (1–10)</label><input id="starsCount" type="number" min="1" max="10" value="1"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="m-btn" onclick="closeModal('giveStarsModal')">Annuler</button>
+      <button class="m-btn primary" onclick="doGiveStars()">Donner</button>
+    </div>
+  </div>
+</div>
+
+<!-- Demandes Club Admin -->
+<div class="modal-overlay" id="pendingModal">
+  <div class="modal">
+    <div class="modal-head"><h3>🏯 Demandes d'accès au Club</h3><button class="modal-close" onclick="closeModal('pendingModal')">✕</button></div>
+    <div class="modal-body" id="pendingList"></div>
+    <div class="modal-foot"><button class="m-btn" onclick="closeModal('pendingModal')">Fermer</button></div>
+  </div>
+</div>
+
+<!-- Nouveau salon Club -->
+<div class="modal-overlay" id="newChannelModal">
+  <div class="modal">
+    <div class="modal-head"><h3>➕ Créer un salon</h3><button class="modal-close" onclick="closeModal('newChannelModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label>Nom du salon</label><input id="newChanName" type="text" placeholder="ex: bleach, dbz-fan..."></div>
+    </div>
+    <div class="modal-foot">
+      <button class="m-btn" onclick="closeModal('newChannelModal')">Annuler</button>
+      <button class="m-btn primary" onclick="doCreateChannel()">Créer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Inviter ami jeu -->
+<div class="modal-overlay" id="gameInvModal">
+  <div class="modal">
+    <div class="modal-head"><h3>🎮 Inviter un ami à jouer</h3><button class="modal-close" onclick="closeModal('gameInvModal')">✕</button></div>
+    <input type="hidden" id="gameInvId">
+    <div class="modal-body">
+      <div class="field"><label>Choisis un ami</label><select id="gameInvFriend"></select></div>
+    </div>
+    <div class="modal-foot">
+      <button class="m-btn" onclick="closeModal('gameInvModal')">Annuler</button>
+      <button class="m-btn primary" onclick="doGameInvite()">Envoyer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Évaluation site -->
+<div class="modal-overlay" id="ratingModal">
+  <div class="modal">
+    <div class="modal-head"><h3>⭐ Évalue AnimesTomes</h3><button class="modal-close" onclick="closeModal('ratingModal')">✕</button></div>
+    <div class="modal-body" style="text-align:center">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Tu utilises AnimesTomes depuis un moment 😊<br>Donne-nous ton avis sur une échelle de 1 à 10 !</p>
+      <input type="hidden" id="ratingScore" value="">
+      <div class="rating-stars">
+        <span class="rating-star" onclick="rateClick(1)">⭐</span>
+        <span class="rating-star" onclick="rateClick(2)">⭐</span>
+        <span class="rating-star" onclick="rateClick(3)">⭐</span>
+        <span class="rating-star" onclick="rateClick(4)">⭐</span>
+        <span class="rating-star" onclick="rateClick(5)">⭐</span>
+        <span class="rating-star" onclick="rateClick(6)">⭐</span>
+        <span class="rating-star" onclick="rateClick(7)">⭐</span>
+        <span class="rating-star" onclick="rateClick(8)">⭐</span>
+        <span class="rating-star" onclick="rateClick(9)">⭐</span>
+        <span class="rating-star" onclick="rateClick(10)">⭐</span>
+      </div>
+      <div class="field" style="text-align:left;margin-top:10px">
+        <label>Commentaire (optionnel)</label>
+        <textarea id="ratingComment" rows="2" placeholder="Dis-nous ce que tu penses..."></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="m-btn" onclick="closeModal('ratingModal')">Plus tard</button>
+      <button class="m-btn primary" onclick="submitRating()">Envoyer mon avis</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toastEl"></div>
+
+<!-- ══════════════════════════════════════
+     SCRIPTS — ORDRE CRITIQUE :
+     1. games.js (déclare les fonctions de jeux)
+     2. app.js   (utilise ces fonctions)
+     3. Firebase (module ES, initialise FB)
+     4. Inline   (init après tout)
+═══════════════════════════════════════ -->
+<script src="games.js"></script>
+<script src="app.js"></script>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import {
+    getDatabase, ref, set, get, push, onValue, update, remove, increment, serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey:            "AIzaSyAzZx-uERwDNneM4T51Aklm8jykE2TQTT4",
+    authDomain:        "animestomes.firebaseapp.com",
+    projectId:         "animestomes",
+    storageBucket:     "animestomes.firebasestorage.app",
+    messagingSenderId: "400335495869",
+    appId:             "1:400335495869:web:6762e12583a7a8500e8dd4",
+    databaseURL:       "https://animestomes-default-rtdb.firebaseio.com",
+    measurementId:     "G-YDNV6DDB9M"
+  };
+
+  const fbApp = initializeApp(firebaseConfig);
+  const db    = getDatabase(fbApp);
+
+  window.FB = { db, ref, set, get, push, onValue, update, remove, increment, serverTimestamp, ready:true };
+  window.dispatchEvent(new Event('firebase-ready'));
+</script>
+
+<script>
+/* ── Particules auth ── */
+(function(){
+  const p = document.getElementById('authParticles');
+  if(!p) return;
+  for(let i=0;i<6;i++){
+    const d = document.createElement('div');
+    d.className='ap';
+    const s = 80+Math.random()*180;
+    d.style.cssText=`width:${s}px;height:${s}px;left:${Math.random()*100}%;top:${Math.random()*100}%;animation-delay:${Math.random()*4}s;animation-duration:${6+Math.random()*4}s`;
+    p.appendChild(d);
+  }
+})();
+
+/* ── Prévisualisation story ── */
+document.getElementById('storyMediaInput').addEventListener('change',function(){
+  const preview=document.getElementById('storyMediaPreview');
+  preview.innerHTML='';
+  const files=Array.from(this.files||[]);
+  if(!files.length) return;
+  preview.innerHTML='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:6px">'+
+    files.map(f=>{
+      const url=URL.createObjectURL(f);
+      return f.type.startsWith('video/')
+        ? `<video src="${url}" muted style="width:100%;height:80px;object-fit:cover;border-radius:6px"></video>`
+        : `<img src="${url}" style="width:100%;height:80px;object-fit:cover;border-radius:6px">`;
+    }).join('')+
+    `</div><div style="font-size:11px;color:#888;margin-top:6px">${files.length} média(s) sélectionné(s)</div>`;
+});
+
+/* ── Helper emoji ── */
+function addEmoji(inputId, emoji){
+  const inp=document.getElementById(inputId);
+  if(inp){inp.value+=emoji;inp.focus();}
+}
+
+/* ── Helper téléchargement (pour galerie et posts) ── */
+function downloadMedia(url, filename){
+  const a=document.createElement('a');
+  a.href=url; a.download=filename||'animestomes_media';
+  a.target='_blank'; a.click();
+}
+window.downloadMedia = downloadMedia;
+</script>
+
+</body>
+</html>
